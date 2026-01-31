@@ -124,14 +124,18 @@ def predict(model_name, user_ids, params=None):
     sim_threshold = params.get("sim_threshold", 60) / 100.0
     idx_id_dict, id_idx_dict = get_doc_dicts()
     sim_matrix = load_sim().to_numpy()
-
+    
+    ratings_df = load_ratings()
     users, courses, scores = [], [], []
 
-    ratings_df = load_ratings()
-
     for user_id in user_ids:
-        if model_name == models[0]:  # Course Similarity
-            enrolled = ratings_df[ratings_df["user"] == user_id]["item"].tolist()
+        # Get the list of courses this user has liked
+        enrolled = ratings_df[ratings_df["user"] == user_id]["item"].tolist()
+        
+        # ---------------------------------------------------------
+        # MODEL 1: Course Similarity
+        # ---------------------------------------------------------
+        if model_name == models[0]:
             res = course_similarity_recommendations(
                 idx_id_dict, id_idx_dict, enrolled, sim_matrix
             )
@@ -141,6 +145,53 @@ def predict(model_name, user_ids, params=None):
                     courses.append(cid)
                     scores.append(score)
 
+        # ---------------------------------------------------------
+        # MODEL 2: Clustering (K-Means)
+        # ---------------------------------------------------------
+        elif model_name == models[2]:  # Clustering
+            # 1. Load Data
+            bow_df = load_bow()
+            
+            # 2. Train KMeans (On the fly for simplicity)
+            n_clusters = params.get("n_clusters", 10) # Default to 10 clusters
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            # Drop identifiers to get just the features
+            X = bow_df.drop(columns=["doc_id", "doc_index"], errors='ignore') 
+            kmeans.fit(X)
+            
+            # 3. Predict Cluster for All Courses
+            bow_df['cluster'] = kmeans.labels_
+            
+            # 4. Find the User's Cluster 
+            # (We find the cluster of their most recently liked course)
+            user_clusters = []
+            for course_id in enrolled:
+                # Find the feature row for this course
+                course_row = bow_df[bow_df['doc_id'] == course_id]
+                if not course_row.empty:
+                    cluster_id = course_row['cluster'].values[0]
+                    user_clusters.append(cluster_id)
+            
+            # If user has liked courses, pick their most common cluster
+            if user_clusters:
+                import collections
+                # Find most common cluster among liked courses
+                target_cluster = collections.Counter(user_clusters).most_common(1)[0][0]
+                
+                # 5. Recommend other courses from this cluster
+                recommendations = bow_df[bow_df['cluster'] == target_cluster]
+                
+                for _, row in recommendations.iterrows():
+                    cid = row['doc_id']
+                    # Exclude courses the user already took
+                    if cid not in enrolled:
+                        users.append(user_id)
+                        courses.append(cid)
+                        scores.append(1.0) # Score is 1.0 because it's in the same cluster
+
+    # ---------------------------------------------------------
+    # Format Output
+    # ---------------------------------------------------------
     if not users:
         return pd.DataFrame(columns=["USER", "COURSE_ID", "SCORE"])
 
