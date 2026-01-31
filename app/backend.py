@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -16,23 +17,30 @@ models = ("Course Similarity",
           "Regression with Embedding Features",
           "Classification with Embedding Features")
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def load_ratings():
-    return pd.read_csv("ratings.csv")
+    return pd.read_csv(os.path.join(BASE_DIR, "ratings.csv"))
+          
+def load_courses():
+    path = os.path.join(BASE_DIR, "course_processed.csv")
+    df = pd.read_csv(path)
 
+    if "TITLE" in df.columns:
+        df["TITLE"] = df["TITLE"].fillna("").str.title()
 
-def load_course_sims():
-    return pd.read_csv("sim.csv")
+    return df
 
+def load_bow():
+    return pd.read_csv(os.path.join(BASE_DIR, "courses_bows.csv"))
+
+def load_sim():
+    return pd.read_csv(os.path.join(BASE_DIR, "sim.csv"))
 
 def load_courses():
     df = pd.read_csv("course_processed.csv")
     df['TITLE'] = df['TITLE'].str.title()
     return df
-
-
-def load_bow():
-    return pd.read_csv("courses_bows.csv")
 
 
 def add_new_ratings(new_courses):
