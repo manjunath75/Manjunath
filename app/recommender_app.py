@@ -50,36 +50,18 @@ selected_courses = st.multiselect(
 # ----------------------------
 # Prediction
 # ----------------------------
+# ----------------------------
+# Prediction
+# ----------------------------
 if st.sidebar.button("🚀 Recommend Courses") and selected_courses:
-    new_user_id, new_ratings_df = backend.add_new_ratings(selected_courses)
-
-    # Merge temp ratings (NO disk write)
+    # 1. Load the existing ratings first
     base_ratings = backend.load_ratings()
-    combined = pd.concat([base_ratings, new_ratings_df], ignore_index=True)
 
-    # Monkey-patch for prediction only
-    backend.load_ratings = lambda: combined
+    # 2. Pass BOTH arguments to the function
+    # Note: backend.add_new_ratings returns the ID and the ALREADY MERGED dataframe
+    new_user_id, combined_ratings = backend.add_new_ratings(base_ratings, selected_courses)
+
+    # 3. Monkey-patch using the combined dataframe returned by the backend
+    backend.load_ratings = lambda: combined_ratings
 
     res_df = backend.predict(model_selection, [new_user_id], params)
-
-    if res_df.empty:
-        st.warning("No recommendations found.")
-    else:
-        res_df = res_df.merge(
-            courses_df,
-            on="COURSE_ID",
-            how="left"
-        )[["TITLE", "DESCRIPTION", "SCORE"]]
-
-        st.subheader("🎯 Recommended Courses")
-
-        st.dataframe(
-            res_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "TITLE": st.column_config.TextColumn("Course Title", width="medium"),
-                "DESCRIPTION": st.column_config.TextColumn("Description", width="large"),
-                "SCORE": st.column_config.NumberColumn("Score", format="%.3f")
-            }
-        )
