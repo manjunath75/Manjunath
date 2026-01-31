@@ -24,18 +24,29 @@ courses_df = load_courses()
 # ----------------------------
 st.sidebar.header("Configuration")
 
+# ----------------------------
+# Sidebar
+# ----------------------------
+st.sidebar.header("Configuration")
+
+# 1. Model Selection
 model_selection = st.sidebar.selectbox(
     "Choose Recommendation Model",
     backend.models
 )
 
-if model_selection == backend.models[2]: # Clustering
+# 2. Dynamic Parameters (The Fix)
+params = {}
+
+# Check if "Clustering" is selected
+if model_selection == backend.models[2]: 
+    # Show Cluster Slider ONLY for Clustering
     n_clusters = st.sidebar.slider("Number of Clusters", 2, 20, 10)
-    params = {"n_clusters": n_clusters}
+    params["n_clusters"] = n_clusters
 else:
-    # Existing threshold slider for Similarity model
+    # Show Similarity Slider for everything else
     sim_threshold = st.sidebar.slider("Similarity Threshold (%)", 0, 100, 30)
-    params = {"sim_threshold": sim_threshold}
+    params["sim_threshold"] = sim_threshold
 
 model_selection = st.sidebar.selectbox(
     "Choose Recommendation Model",
