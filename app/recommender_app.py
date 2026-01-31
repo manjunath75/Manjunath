@@ -29,6 +29,19 @@ model_selection = st.sidebar.selectbox(
     backend.models
 )
 
+if model_selection == backend.models[2]: # Clustering
+    n_clusters = st.sidebar.slider("Number of Clusters", 2, 20, 10)
+    params = {"n_clusters": n_clusters}
+else:
+    # Existing threshold slider for Similarity model
+    sim_threshold = st.sidebar.slider("Similarity Threshold (%)", 0, 100, 30)
+    params = {"sim_threshold": sim_threshold}
+
+model_selection = st.sidebar.selectbox(
+    "Choose Recommendation Model",
+    backend.models
+)
+
 sim_threshold = st.sidebar.slider(
     "Similarity Threshold (%)",
     0, 100, 60
@@ -47,9 +60,6 @@ selected_courses = st.multiselect(
     format_func=lambda x: courses_df[courses_df["COURSE_ID"] == x]["TITLE"].values[0]
 )
 
-# ----------------------------
-# Prediction
-# ----------------------------
 # ----------------------------
 # Prediction
 # ----------------------------
@@ -73,5 +83,4 @@ if st.sidebar.button("🚀 Recommend Courses") and selected_courses:
     if res_df.empty:
         st.warning("No recommendations found. Try lowering the Similarity Threshold.")
     else:
-        # ... (rest of your display code) ...
         res_df = backend.predict(model_selection, [new_user_id], params)
