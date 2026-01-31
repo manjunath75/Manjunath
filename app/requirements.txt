@@ -3,3 +3,4 @@ pandas
 streamlit
 streamlit-aggrid
 scikit-learn
+altair
