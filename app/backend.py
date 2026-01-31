@@ -37,11 +37,6 @@ def load_bow():
 def load_sim():
     return pd.read_csv(os.path.join(BASE_DIR, "sim.csv"))
 
-def load_courses():
-    df = pd.read_csv("course_processed.csv")
-    df['TITLE'] = df['TITLE'].str.title()
-    return df
-
 
 def add_new_ratings(new_courses):
     res_dict = {}
