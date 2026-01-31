@@ -41,12 +41,17 @@ def load_bow():
 def load_sim():
     return pd.read_csv(os.path.join(BASE_DIR, "sim.csv"))
 
-# ----------------------------
-# Session-safe ratings (NO FILE WRITE)
-# ----------------------------
-def add_new_ratings(new_courses):
-    ratings_df = load_ratings()
-    new_user_id = ratings_df["user"].max() + 1
+
+def add_new_ratings(ratings_df, new_courses):
+    """
+    Returns:
+    - new_user_id (int)
+    - updated_ratings_df (DataFrame)
+    """
+    if ratings_df.empty:
+        new_user_id = 1
+    else:
+        new_user_id = ratings_df["user"].max() + 1
 
     new_ratings_df = pd.DataFrame({
         "user": [new_user_id] * len(new_courses),
@@ -54,7 +59,13 @@ def add_new_ratings(new_courses):
         "rating": [3.0] * len(new_courses),
     })
 
-    return new_user_id, new_ratings_df
+    updated_ratings_df = pd.concat(
+        [ratings_df, new_ratings_df],
+        ignore_index=True
+    )
+
+    return new_user_id, updated_ratings_df
+
 
 # ----------------------------
 # Utilities
@@ -80,7 +91,7 @@ def course_similarity_recommendations(idx_id_dict, id_idx_dict, enrolled_ids, si
     return dict(sorted(res.items(), key=lambda x: x[1], reverse=True))
 
 # ----------------------------
-# Training (lightweight only)
+# Training
 # ----------------------------
 def train(model_name, params=None):
     if params is None:
@@ -104,7 +115,7 @@ def train(model_name, params=None):
     return None
 
 # ----------------------------
-# Prediction (SAFE)
+# Prediction
 # ----------------------------
 def predict(model_name, user_ids, params=None):
     if params is None:
