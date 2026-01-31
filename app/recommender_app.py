@@ -30,18 +30,7 @@ model_selection = st.sidebar.selectbox(
     backend.models
 )
 
-# 2. Dynamic Parameters (The Fix)
 params = {}
-
-# Check if "Clustering" is selected
-if model_selection == backend.models[2]: 
-    # Show Cluster Slider ONLY for Clustering
-    n_clusters = st.sidebar.slider("Number of Clusters", 2, 20, 10)
-    params["n_clusters"] = n_clusters
-else:
-    # Show Similarity Slider for everything else
-    sim_threshold = st.sidebar.slider("Similarity Threshold (%)", 0, 100, 30)
-    params["sim_threshold"] = sim_threshold
 
 model_selection = st.sidebar.selectbox(
     "Choose Recommendation Model",
