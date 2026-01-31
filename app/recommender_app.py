@@ -24,11 +24,6 @@ courses_df = load_courses()
 # ----------------------------
 st.sidebar.header("Configuration")
 
-# ----------------------------
-# Sidebar
-# ----------------------------
-st.sidebar.header("Configuration")
-
 # 1. Model Selection
 model_selection = st.sidebar.selectbox(
     "Choose Recommendation Model",
