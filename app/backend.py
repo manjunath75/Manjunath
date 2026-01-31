@@ -213,33 +213,42 @@ def train(model_name, params):
 
 
 # Prediction
-def predict(model_name, user_ids, params):
-    sim_threshold = 0.6
-    if "sim_threshold" in params:
-        sim_threshold = params["sim_threshold"] / 100.0
+def predict(model_name, user_ids, params=None):
+    if params is None:
+        params = {}
+
+    sim_threshold = params.get("sim_threshold", 60) / 100.0
+
     idx_id_dict, id_idx_dict = get_doc_dicts()
-    sim_matrix = load_course_sims().to_numpy()
-    users = []
-    courses = []
-    scores = []
-    res_dict = {}
+    sim_matrix = load_sim().to_numpy()
+
+    users, courses, scores = [], [], []
 
     for user_id in user_ids:
-        # Course Similarity model
-        if model_name == models[0]:
+        if model_name == models[0]:  # Course Similarity
             ratings_df = load_ratings()
-            user_ratings = ratings_df[ratings_df['user'] == user_id]
-            enrolled_course_ids = user_ratings['item'].to_list()
-            res = course_similarity_recommendations(idx_id_dict, id_idx_dict, enrolled_course_ids, sim_matrix)
-            for key, score in res.items():
+            user_ratings = ratings_df[ratings_df["user"] == user_id]
+            enrolled_course_ids = user_ratings["item"].to_list()
+
+            res = course_similarity_recommendations(
+                idx_id_dict,
+                id_idx_dict,
+                enrolled_course_ids,
+                sim_matrix
+            )
+
+            for cid, score in res.items():
                 if score >= sim_threshold:
                     users.append(user_id)
-                    courses.append(key)
+                    courses.append(cid)
                     scores.append(score)
-        # TODO: Add prediction model code here
 
-    res_dict['USER'] = users
-    res_dict['COURSE_ID'] = courses
-    res_dict['SCORE'] = scores
-    res_df = pd.DataFrame(res_dict, columns=['USER', 'COURSE_ID', 'SCORE'])
-    return res_df
+    if len(users) == 0:
+        return pd.DataFrame(columns=["USER", "COURSE_ID", "SCORE"])
+
+    return pd.DataFrame({
+        "USER": users,
+        "COURSE_ID": courses,
+        "SCORE": scores
+    })
+
