@@ -54,14 +54,24 @@ selected_courses = st.multiselect(
 # Prediction
 # ----------------------------
 if st.sidebar.button("🚀 Recommend Courses") and selected_courses:
-    # 1. Load the existing ratings first
+    # 1. Add this debug line
+    st.write(f"DEBUG: Selected Model: {model_selection}")
+    
+    # 2. Load and merge ratings
     base_ratings = backend.load_ratings()
-
-    # 2. Pass BOTH arguments to the function
-    # Note: backend.add_new_ratings returns the ID and the ALREADY MERGED dataframe
     new_user_id, combined_ratings = backend.add_new_ratings(base_ratings, selected_courses)
-
-    # 3. Monkey-patch using the combined dataframe returned by the backend
+    
+    # 3. Monkey-patch
     backend.load_ratings = lambda: combined_ratings
 
+    # 4. Predict
     res_df = backend.predict(model_selection, [new_user_id], params)
+    
+    # 5. Add this debug line
+    st.write(f"DEBUG: Found {len(res_df)} results.")
+
+    if res_df.empty:
+        st.warning("No recommendations found. Try lowering the Similarity Threshold.")
+    else:
+        # ... (rest of your display code) ...
+        res_df = backend.predict(model_selection, [new_user_id], params)
