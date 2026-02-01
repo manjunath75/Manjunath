@@ -210,10 +210,11 @@ def train(model_name, params):
 
 
 # Prediction
-def predict(model_name, user_ids, params):
+def predict(model_name, user_ids, params, new_user_courses=None):
     sim_threshold = 0.6
     if "sim_threshold" in params:
         sim_threshold = params["sim_threshold"] / 100.0
+    
     idx_id_dict, id_idx_dict = get_doc_dicts()
     sim_matrix = load_course_sims().to_numpy()
     users = []
@@ -224,16 +225,24 @@ def predict(model_name, user_ids, params):
     for user_id in user_ids:
         # Course Similarity model
         if model_name == models[0]:
-            ratings_df = load_ratings()
-            user_ratings = ratings_df[ratings_df['user'] == user_id]
-            enrolled_course_ids = user_ratings['item'].to_list()
+            # logic to handle the current session user without reading CSV
+            if new_user_courses is not None and user_id == 999999: # Dummy ID for current user
+                enrolled_course_ids = new_user_courses
+            else:
+                # Normal logic for existing users in the dataset
+                ratings_df = load_ratings()
+                user_ratings = ratings_df[ratings_df['user'] == user_id]
+                enrolled_course_ids = user_ratings['item'].to_list()
+            
             res = course_similarity_recommendations(idx_id_dict, id_idx_dict, enrolled_course_ids, sim_matrix)
+            
             for key, score in res.items():
                 if score >= sim_threshold:
                     users.append(user_id)
                     courses.append(key)
                     scores.append(score)
-        # TODO: Add prediction model code here
+        
+        # TODO: Add other models...
 
     res_dict['USER'] = users
     res_dict['COURSE_ID'] = courses
