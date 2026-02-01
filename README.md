@@ -10,7 +10,7 @@
 <p align="left"><p>I am a Software Engineer with 3 years of experience in building scalable and efficient solutions using Microsoft Azure. I also have hands-on experience with Generative AI and Agentic Frameworks, where I’ve developed solutions that enhance productivity and optimize workflows. I’m passionate about solving complex problems, collaborating with teams, and continuously learning to adapt to emerging technologies.</p>
 ###
 
-<p align="left">✨ Build and Shipped Critical Features ...<br>📚 I'm currently learning ...<br>🎯 Goals: Become a Better DevOps engineer along with becoming an ML Engineer <br></p>
+<p align="left">✨ Build and Shipped Critical Features ...<br>📚 I'm currently learning ...<br>🎯 Goals: Become a Better ML Engineer <br></p>
 
 ###
 
