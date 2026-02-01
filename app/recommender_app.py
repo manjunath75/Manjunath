@@ -158,10 +158,15 @@ st.sidebar.subheader('4. Prediction')
 # Start prediction process
 pred_button = st.sidebar.button("Recommend New Courses")
 if pred_button and selected_courses_df.shape[0] > 0:
-    # Create a new id for current user session
-    new_id = backend.add_new_ratings(selected_courses_df['COURSE_ID'].values)
-    user_ids = [new_id]
-    res_df = predict(model_selection, user_ids, params)
+    # Get the list of course IDs selected by the user
+    new_user_courses = selected_courses_df['COURSE_ID'].values
+    
+    # Use a dummy ID for the current session user
+    user_ids = [999999] 
+    
+    # Pass the courses explicitly to the predict function
+    res_df = backend.predict(model_selection, user_ids, params, new_user_courses)
+    
     res_df = res_df[['COURSE_ID', 'SCORE']]
     course_df = load_courses()
     res_df = pd.merge(res_df, course_df, on=["COURSE_ID"]).drop('COURSE_ID', axis=1)
@@ -187,4 +192,3 @@ if pred_button and selected_courses_df.shape[0] > 0:
             )
         }
     )
-
